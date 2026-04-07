@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏹 Section Drill Selector</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: white; }
+.container { text-align: center; max-width: 450px; width: 90vw; background: rgba(255,255,255,0.12); backdrop-filter: blur(25px); border-radius: 25px; padding: 40px 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }
+h1 { font-size: 28px; margin-bottom: 30px; background: linear-gradient(45deg, #f39c12, #e67e22); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.drill-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin: 35px 0; }
+.drill-card { background: rgba(255,255,255,0.15); padding: 25px 20px; border-radius: 20px; border: 2px solid rgba(255,255,255,0.3); cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(15px); }
+.drill-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-color: #f1c40f; }
+.drill-card.active { border-color: #f39c12; background: rgba(243,156,18,0.2); box-shadow: 0 0 30px rgba(243,156,18,0.4); }
+.drill-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 10px; color: #f1c40f; }
+.drill-desc { font-size: 1rem; opacity: 0.95; line-height: 1.4; }
+.drill-reps { font-size: 1.1rem; font-weight: 600; margin-top: 8px; color: #ecf0f1; }
+.timer-section { opacity: 0; transform: translateY(20px); transition: all 0.4s ease; }
+.timer-section.active { opacity: 1; transform: translateY(0); }
+.timer-display { font-size: 4.2rem; font-weight: 900; margin: 35px 0; background: linear-gradient(45deg, #e74c3c, #c0392b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: monospace; letter-spacing: 0.15em; min-height: 130px; display: flex; align-items: center; justify-content: center; }
+.rep-badge { display: inline-block; background: rgba(231,76,60,0.3); padding: 10px 25px; border-radius: 30px; font-size: 1.4rem; font-weight: 700; border: 2px solid rgba(231,76,60,0.6); margin: 15px 0; }
+.controls { display: flex; gap: 15px; justify-content: center; margin: 30px 0; flex-wrap: wrap; }
+.btn { padding: 16px 28px; font-size: 18px; font-weight: bold; border: none; border-radius: 18px; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(12px); min-width: 100px; font-family: inherit; }
+.btn-primary { background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; box-shadow: 0 10px 30px rgba(231,76,60,0.4); }
+.btn-primary:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(231,76,60,0.6); }
+.btn-secondary { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); }
+.btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.35); transform: translateY(-2px); }
+.progress-bar { width: 100%; height: 14px; background: rgba(255,255,255,0.15); border-radius: 12px; overflow: hidden; margin: 20px 0; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border-radius: 12px; transition: width 0.4s ease; box-shadow: 0 0 25px rgba(243,156,18,0.6); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 15px; margin: 20px 0; }
+.stat { background: rgba(255,255,255,0.1); padding: 15px 12px; border-radius: 15px; }
+.stat-value { font-size: 1.8rem; font-weight: 800; color: #f1c40f; }
+.instruction { font-size: 1.2rem; margin-top: 20px; font-weight: 600; padding: 18px; background: rgba(255,255,255,0.08); border-radius: 15px; border-left: 4px solid #f39c12; }
+@media (max-width: 480px) { .drill-selector { grid-template-columns: 1fr; } .timer-display { font-size: 3.2rem; } }
+@keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(243,156,18,0.4); } 50% { box-shadow: 0 0 35px rgba(243,156,18,0.7); } }
+.glow { animation: glow 2s infinite; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🏹 Section Drills</h1>
+<div class="drill-selector" id="drillSelector">
+<div class="drill-card active" data-drill="quick">
+<div class="drill-title">⚡ Quick Holds</div>
+<div class="drill-desc">8 reps × 10 seconds</div>
+<div class="drill-reps">Fast stability work</div>
+</div>
+<div class="drill-card" data-drill="endurance">
+<div class="drill-title">💪 Endurance</div>
+<div class="drill-desc">5 reps × 18 seconds</div>
+<div class="drill-reps">Longer fatigue resistance</div>
+</div>
+</div>
+<div class="timer-section active" id="timerSection">
+<div class="timer-display" id="timer">10</div>
+<div class="rep-badge" id="repCounter">Rep 1/8</div>
+<div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+<div class="controls">
+<button class="btn btn-primary glow" id="startBtn">▶️ START</button>
+<button class="btn btn-secondary" id="nextBtn">⏭️ Next Rep</button>
+<button class="btn btn-secondary" id="resetBtn">🔄 Reset</button>
+</div>
+<div class="stats">
+<div class="stat"><div>Reps</div><div class="stat-value" id="reps">0</div></div>
+<div class="stat"><div>Time/Rep</div><div class="stat-value" id="avgTime">0s</div></div>
+<div class="stat"><div>Total</div><div class="stat-value" id="totalTime">0s</div></div>
+</div>
+<div class="instruction" id="instruction">Select drill → Press START → Hold steady each rep</div>
+</div>
+</div>
+<script>
+class SectionDrillSelector {
+constructor() {
+this.selectedDrill = 'quick';
+this.reps = { quick: 8, endurance: 5 };
+this.duration = { quick: 10, endurance: 10 };
+this.currentRep = 0;
+this.remaining = 10;
+this.isRunning = false;
+this.totalTime = 0;
+this.repTimes = [];
+this.repsStartTime = 0;
+this.drillStartTime = 0;
+this.elements = {
+drillSelector: document.getElementById('drillSelector'),
+timerSection: document.getElementById('timerSection'),
+timer: document.getElementById('timer'),
+repCounter: document.getElementById('repCounter'),
+progress: document.getElementById('progress'),
+startBtn: document.getElementById('startBtn'),
+nextBtn: document.getElementById('nextBtn'),
+resetBtn: document.getElementById('resetBtn'),
+reps: document.getElementById('reps'),
+avgTime: document.getElementById('avgTime'),
+totalTime: document.getElementById('totalTime'),
+instruction: document.getElementById('instruction')
+};
+this.init();
+}
+init() {
+this.bindEvents();
+this.updateDisplay();
+}
+bindEvents() {
+document.querySelectorAll('.drill-card').forEach(card => {
+card.addEventListener('click', (e) => {
+this.selectDrill(e.currentTarget.dataset.drill);
+});
+});
+this.elements.startBtn.addEventListener('click', () => this.toggle());
+this.elements.nextBtn.addEventListener('click', () => this.nextRep());
+this.elements.resetBtn.addEventListener('click', () => this.reset());
+document.addEventListener('keydown', (e) => {
+if (e.code === 'Space') { e.preventDefault(); this.isRunning ? this.nextRep() : this.start(); }
+if (e.code === 'KeyR') this.reset();
+});
+}
+selectDrill(drill) {
+this.selectedDrill = drill;
+this.duration[this.selectedDrill] = drill === 'quick' ? 10 : 18;
+document.querySelectorAll('.drill-card').forEach(c => c.classList.remove('active'));
+document.querySelector(`[data-drill="${drill}"]`).classList.add('active');
+this.reset();
+}
+start() {
+this.isRunning = true;
+this.drillStartTime = Date.now();
+this.repsStartTime = Date.now();
+this.elements.startBtn.textContent = '⏸️ PAUSE';
+this.elements.startBtn.classList.add('glow');
+this.tick();
+this.playBeep(800, 0.2);
+}
+toggle() {
+this.isRunning ? this.pause() : this.start();
+}
+pause() {
+this.isRunning = false;
+this.elements.startBtn.textContent = '▶️ RESUME';
+}
+nextRep() {
+this.playBeep(1200, 0.15);
+this.currentRep++;
+if (this.currentRep >= this.reps[this.selectedDrill]) {
+this.complete();
+return;
+}
+this.repsStartTime = Date.now();
+  this.updateDisplay();
+}
+reset() {
+this.currentRep = 0;
+this.remaining = this.duration[this.selectedDrill];
+this.totalTime = 0;
+this.repTimes = [];
+this.isRunning = false;
+this.elements.startBtn.textContent = '▶️ START';
+this.elements.startBtn.classList.remove('glow');
+this.updateDisplay();
+}
+tick() {
+    if (!this.isRunning) return;
+  const elapsedSinceRep = Math.floor((Date.now() - this.repsStartTime) / 1000);
+  this.remaining = Math.max(0, this.duration[this.selectedDrill] - elapsedSinceRep);
+  this.totalTime = Math.floor((Date.now() - this.drillStartTime) / 1000);
+  this.updateDisplay();
+  if (this.remaining <= 0) {
+    this.nextRep();
+  }
+  requestAnimationFrame(this.tick.bind(this));
+}
+updateDisplay() {
+this.elements.timer.textContent = this.remaining;
+const progress = (this.currentRep / this.reps[this.selectedDrill]) * 100;
+this.elements.progress.style.width = `${progress}%`;
+this.elements.repCounter.textContent = `Rep ${this.currentRep + 1}/${this.reps[this.selectedDrill]}`;
+this.elements.reps.textContent = this.currentRep;
+this.elements.avgTime.textContent = this.repTimes.length ? `${Math.round(this.getAvg())}s` : '0s';
+this.elements.totalTime.textContent = `${this.totalTime}s`;
+const instructions = {
+quick: `Quick Holds: ${this.duration.quick}s focus - stability first`,
+endurance: `Endurance: ${this.duration.endurance}s holds - breathe steady`
+};
+this.elements.instruction.textContent = instructions[this.selectedDrill];
+}
+getAvg() {
+return this.repTimes.reduce((a,b)=>a+b,0) / this.repTimes.length || 0;
+}
+complete() {
+this.isRunning = false;
+this.elements.startBtn.textContent = '🎉 DONE';
+this.playBeep(1000, 0.5);
+}
+playBeep(f,h) {
+try {
+const a = new (window.AudioContext||window.webkitAudioContext);
+const o = a.createOscillator(), g = a.createGain();
+o.connect(g); g.connect(a.destination); o.frequency.value = f; o.type = 'sine';
+g.gain.setValueAtTime(.3,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+h);
+o.start(a.currentTime); o.stop(a.currentTime+h);
+} catch(e){}
+}
+}
+new SectionDrillSelector();
+</script>
+</body>
+</html>
