@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏹 Raise & Hold Drill</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: white; }
+.container { text-align: center; max-width: 500px; width: 90vw; background: rgba(255,255,255,0.15); backdrop-filter: blur(30px); border-radius: 30px; padding: 50px 40px; box-shadow: 0 30px 70px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); }
+h1 { font-size: 32px; margin-bottom: 35px; background: linear-gradient(45deg, #f39c12, #e67e22); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.direction-arrow { font-size: 8rem; font-weight: 900; margin: 40px 0; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.5s ease; }
+.arrow-icon { font-size: 10rem; line-height: 1; transition: all 0.3s ease; }
+.arrow-left::before { content: "⬅️"; transform: rotate(0deg); }
+.arrow-right::before { content: "➡️"; transform: rotate(0deg); }
+.arrow-up::before { content: "⬆️"; transform: rotate(0deg); }
+.arrow-down::before { content: "⬇️"; transform: rotate(0deg); }
+.arrow-center::before { content: "🎯"; font-size: 9rem; transform: scale(1.1); }
+.timer-display { font-size: 5rem; font-weight: 900; margin: 40px 0; background: linear-gradient(45deg, #e74c3c, #c0392b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: monospace; letter-spacing: 0.2em; min-height: 110px; display: flex; align-items: center; justify-content: center; }
+.status-badge { padding: 15px 35px; background: rgba(255,255,255,0.2); border-radius: 40px; font-size: 1.6rem; font-weight: 800; border: 3px solid rgba(255,255,255,0.5); margin: 25px 0; display: inline-block; }
+.completed { background: rgba(231,76,60,0.3) !important; border-color: #e74c3c !important; color: #ff6b6b; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.8; } }
+.controls { display: flex; gap: 20px; justify-content: center; margin: 40px 0; flex-wrap: wrap; }
+.btn { padding: 22px 40px; font-size: 22px; font-weight: bold; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(15px); min-width: 140px; font-family: inherit; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+.btn-primary { background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-5px); box-shadow: 0 25px 60px rgba(231,76,60,0.5); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.btn-secondary { background: rgba(255,255,255,0.25); color: white; border: 3px solid rgba(255,255,255,0.5); }
+.btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.45); transform: translateY(-3px); }
+.progress-section { margin: 30px 0; }
+.progress-label { font-size: 1.2rem; margin-bottom: 12px; font-weight: 600; }
+.progress-bar { width: 100%; height: 18px; background: rgba(255,255,255,0.15); border-radius: 15px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border-radius: 15px; transition: width 0.5s ease; box-shadow: 0 0 35px rgba(243,156,18,0.6); }
+.repeat-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 25px; margin: 35px 0; }
+.stat-card { background: rgba(255,255,255,0.12); padding: 25px 20px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(12px); }
+.stat-value { font-size: 2.5rem; font-weight: 900; color: #f1c40f; }
+.stat-label { font-size: 1.1rem; opacity: 0.95; margin-top: 8px; font-weight: 600; }
+.instruction { font-size: 1.3rem; margin-top: 30px; padding: 25px 30px; background: rgba(255,255,255,0.1); border-radius: 20px; border-left: 6px solid #f39c12; font-weight: 600; line-height: 1.5; }
+@media (max-width: 480px) { .direction-arrow { font-size: 6rem; } .timer-display { font-size: 3.8rem; } .btn { padding: 18px 30px; font-size: 18px; } }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🏹 Raise & Hold</h1>
+<div class="direction-arrow" id="directionArrow">
+<span class="arrow-icon" id="arrowIcon"></span>
+</div>
+<div class="timer-display" id="timer">05</div>
+<div class="status-badge" id="statusBadge">READY - Raise bow horizontally</div>
+<div class="progress-section">
+<div class="progress-label">Command Progress (30 total per repeat)</div>
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+</div>
+<div class="controls">
+<button class="btn btn-primary" id="startBtn">▶️ START DRILL</button>
+<button class="btn btn-secondary" id="resetBtn">🔄 New Repeat</button>
+</div>
+<div class="repeat-stats">
+<div class="stat-card"><div class="stat-value" id="currentCommand">0</div><div class="stat-label">Current Cmd</div></div>
+<div class="stat-card"><div class="stat-value" id="repeatCount">0</div><div class="stat-label">Repeats</div></div>
+<div class="stat-card"><div class="stat-value" id="avgHold">0s</div><div class="stat-label">Avg Hold</div></div>
+</div>
+<div class="instruction" id="instruction">Raise bow horizontally → START → Follow arrows 5s each → Auto Centre reset → 30 commands = 1 repeat</div>
+</div>
+<script>
+class RaiseHoldDrill {
+constructor() {
+this.directions = ['left', 'right', 'up', 'down'];
+this.sequence = [];
+this.currentCommand = 0;
+this.currentHoldStart = 0;
+this.isRunning = false;
+this.repeatCount = 0;
+this.holdTimes = [];
+this.drillStartTime = 0;
+this.isCompleted = false;
+this.generateSequence();
+this.elements = {
+directionArrow: document.getElementById('directionArrow'),
+arrowIcon: document.getElementById('arrowIcon'),
+timer: document.getElementById('timer'),
+statusBadge: document.getElementById('statusBadge'),
+progress: document.getElementById('progress'),
+startBtn: document.getElementById('startBtn'),
+resetBtn: document.getElementById('resetBtn'),
+currentCommand: document.getElementById('currentCommand'),
+repeatCount: document.getElementById('repeatCount'),
+avgHold: document.getElementById('avgHold'),
+instruction: document.getElementById('instruction')
+};
+this.init();
+}
+generateSequence() {
+this.sequence = [];
+let lastDir = null;
+for (let i = 0; i < 15; i++) {
+  let dir;
+  do {
+    dir = this.directions[Math.floor(Math.random() * 4)];
+  } while (dir === lastDir);
+  lastDir = dir;
+  this.sequence.push(dir, 'center');
+}
+}
+init() {
+this.bindEvents();
+this.updateDisplay();
+}
+bindEvents() {
+this.elements.startBtn.addEventListener('click', () => this.startOrNext());
+this.elements.resetBtn.addEventListener('click', () => this.reset());
+document.addEventListener('keydown', (e) => {
+if (e.code === 'Space') {
+e.preventDefault();
+this.startOrNext();
+}
+if (e.code === 'KeyR') this.reset();
+});
+}
+startOrNext() {
+if (!this.isRunning && this.currentCommand === 0) {
+this.start();
+} else if (this.isRunning) {
+this.nextCommand();
+}
+}
+start() {
+this.isRunning = true;
+this.drillStartTime = Date.now();
+this.currentHoldStart = Date.now();
+this.elements.startBtn.textContent = '⏸️ PAUSE';
+this.tick();
+this.playBeep(1000, 0.2);
+}
+nextCommand() {
+const holdTime = Math.floor((Date.now() - this.currentHoldStart) / 1000);
+this.holdTimes.push(holdTime);
+this.currentCommand++;
+if (this.currentCommand >= 30) {
+this.completeRepeat();
+return;
+}
+this.currentHoldStart = Date.now();
+this.updateDisplay();
+this.playVoiceDirection();
+}
+reset() {
+this.currentCommand = 0;
+this.repeatCount = 0;
+this.holdTimes = [];
+this.isRunning = false;
+this.isCompleted = false;
+this.generateSequence();
+this.elements.startBtn.textContent = '▶️ START DRILL';
+this.updateDisplay();
+}
+tick() {
+if (!this.isRunning) return;
+const elapsed = Math.floor((Date.now() - this.currentHoldStart) / 1000);
+const remaining = Math.max(0, 3 - elapsed);
+this.elements.timer.textContent = remaining.toString().padStart(2, '0');
+const progress = Math.min(100, (elapsed / 3) * 100);
+this.elements.progress.style.width = `${(this.currentCommand / 30) * 100}%`;
+if (remaining <= 0) {
+this.nextCommand();
+}
+requestAnimationFrame(this.tick.bind(this));
+}
+updateDisplay() {
+if (this.currentCommand < this.sequence.length) {
+const dir = this.sequence[this.currentCommand];
+this.elements.directionArrow.className = `direction-arrow arrow-${dir}`;
+this.elements.statusBadge.textContent = this.isRunning ? 'HOLD' : 'READY';
+this.elements.statusBadge.classList.toggle('completed', false);
+} else {
+this.elements.directionArrow.className = 'direction-arrow arrow-center';
+this.elements.statusBadge.textContent = 'COMPLETED';
+this.elements.statusBadge.classList.add('completed');
+}
+this.elements.currentCommand.textContent = this.currentCommand + 1;
+this.elements.repeatCount.textContent = this.repeatCount;
+this.elements.avgHold.textContent = this.holdTimes.length ? `${Math.round(this.getAvgHold())}s` : '0s';
+this.elements.instruction.textContent = this.isCompleted 
+  ? '🎯 REPEAT COMPLETE! Press New Repeat' 
+  : 'Raise bow horizontally → Follow arrows 5s → Auto Centre → 30 commands = 1 repeat';
+}
+getAvgHold() {
+return this.holdTimes.reduce((a,b) => a + b, 0) / this.holdTimes.length;
+}
+completeRepeat() {
+this.isRunning = false;
+this.repeatCount++;
+this.isCompleted = true;
+this.elements.startBtn.textContent = '🔄 NEW REPEAT';
+this.elements.progress.style.width = '100%';
+this.updateDisplay();
+this.playBeep(1500, 0.6);
+}
+playVoiceDirection() {
+const dir = this.sequence[this.currentCommand];
+const voices = {
+left: 'left', right: 'right', up: 'up', down: 'down', center: 'center'
+};
+try {
+const utterance = new SpeechSynthesisUtterance(voices[dir]);
+utterance.rate = 0.9;
+speechSynthesis.speak(utterance);
+} catch(e) {
+this.playBeep(1200, 0.3);
+}
+}
+playBeep(f,h) {
+try {
+const ctx = new (window.AudioContext||window.webkitAudioContext)();
+const o = ctx.createOscillator(), g = ctx.createGain();
+o.connect(g); g.connect(ctx.destination);
+o.frequency.value = f; o.type = 'sine';
+g.gain.setValueAtTime(0.4,ctx.currentTime);
+g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+h);
+o.start(ctx.currentTime); o.stop(ctx.currentTime+h);
+} catch(e){}
+}
+}
+new RaiseHoldDrill();
+</script>
+</body>
+</html>
